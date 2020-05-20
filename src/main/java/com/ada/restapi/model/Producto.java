@@ -1,5 +1,8 @@
 package com.ada.restapi.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,12 +18,13 @@ public class Producto {
 	@GeneratedValue (strategy= GenerationType.AUTO)
 	private int id;
 	private String nombre;
-	private float precio;
+	private double precio;
+
+
 	
 	
-	public Producto(int id, String nombre, float precio) {
+	public Producto(String nombre, double precio) {
 		super();
-		this.id = id;
 		this.nombre = nombre;
 		this.precio = precio;
 	}
@@ -36,12 +40,14 @@ public class Producto {
 	public void setNombre(String nombre) {
 		this.nombre = nombre;
 	}
-	public float getPrecio() {
+	public double getPrecio() {
 		return precio;
 	}
-	public void setPrecio(float precio) {
-		this.precio = precio;
+	public void setPrecio(double newPrecio) {
+		this.precio = newPrecio;
 	}
+	
+	
 
 	
 }

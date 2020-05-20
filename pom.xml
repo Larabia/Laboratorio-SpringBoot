@@ -20,7 +20,19 @@
 	</properties>
 
 	<dependencies>
-		
+		<!-- https://mvnrepository.com/artifact/com.google.common/google-collect -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>18.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mashape.unirest</groupId>
+			<artifactId>unirest-java</artifactId>
+			<version>1.4.9</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/junit/junit -->
+	
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>

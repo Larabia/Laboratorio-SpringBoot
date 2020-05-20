@@ -3,7 +3,10 @@ package com.ada.restapi.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,102 +17,108 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.ada.restapi.form.LoginForm;
 import com.ada.restapi.model.Producto;
 import com.ada.restapi.repository.ProductoRepository;
+import com.google.common.collect.Lists;
+import net.bytebuddy.dynamic.DynamicType.Builder.FieldDefinition.Optional;
 
 @Controller
-@RequestMapping(path="/v1") 
+@RequestMapping(path = "/v1")
 public class ProductoController {
-	
+
 	@Autowired
 	private ProductoRepository prodRepo;
 
-	/*@GetMapping(path="/test")
-	public @ResponseBody String getDate(@RequestParam String nombre) {
-		Date date = new Date();
-		return "Hola " + nombre + "Fecha: " + date;
-	}
+	Logger log = Logger.getLogger(ProductoController.class.getName());
 
-	@GetMapping(path = "/login")
-	public @ResponseBody String login(@RequestParam String usuario, @RequestParam String contrasena) {
+	// POST
 
-		return "Hola " + usuario + " Fecha: " + new Date();
-	}
-
-	@GetMapping(path = "/login/{name}/{age}")
-	public @ResponseBody String getMessage(@PathVariable("name") String name, @PathVariable("age") String age) {
-
-		String msg = String.format("%s is %s years old", name, age);
-
-		return msg;
-	}
-
-	/*@PostMapping (path = "/login")
-	public @ResponseBody String loginUser(@RequestBody LoginForm loginForm) {
-		
-		return "El usuario es " + loginForm.getUser();
-	}*/
-	
-	@PostMapping (path = "/login")
-	public @ResponseBody int getClave(@RequestBody LoginForm loginForm) {
-		Random r = new Random();
-		int token = r.nextInt(999999999)+1; 	
-		
-		return token;
-	}
-	
-	
-	@GetMapping (path = "/welcome/{user}")
-	public @ResponseBody List<Producto> welcome (@RequestParam int token, @PathVariable String user) {
-		
-		List<Producto> prodList = new ArrayList<Producto>();
-		
-		Producto prod1 = new Producto(1, "Nokia 1100", 100);
-		Producto prod2 = new Producto(2, "Motorola", 200);
-		Producto prod3 = new Producto(3, "Samsung", 300);
-		
-		prodList.add(prod1);
-		prodList.add(prod2);
-		prodList.add(prod3);
-		
-		
-		return prodList;
-
-	}
-	
-	@DeleteMapping (path = "/{user}")
-	public @ResponseBody String delete (@RequestParam int id, @PathVariable String user) {
-		
-		
-		
-		String delete = "usuario borrado";
-		
-		
-		return delete;
-
-	}
-	
-	@PutMapping (path = "/mail")
-	public @ResponseBody String modificarPass(@RequestBody LoginForm loginForm) {
-		
-		String modificada = "pass modificada";
-		
-		return modificada;
-	}
-	
-	@PostMapping (path = "/producto")
-	public @ResponseBody String altaProducto(@RequestBody Producto producto) {
-		
-		System.out.println("producto guardado");
-		
+	@PostMapping(path = "/producto/alta")
+	public ResponseEntity<Producto> altaProducto(@RequestBody Producto producto) {
+				
+		log.info("metodo: altaProducto.");
 		prodRepo.save(producto);
-		return "Guardado";
-		
-		
+		log.info("metodo: Producto guardado.");
+
+		return new ResponseEntity<>(producto, HttpStatus.CREATED);
+
+	}
+
+
+	// PUT
+
+	@PutMapping(path = "/producto/modificar/nombre")
+	public ResponseEntity<Producto> modificarNombre(@RequestBody Producto producto, @RequestParam String newNombre) {
+
+		log.info("metodo: modificarNombre.");
+		producto.setNombre(newNombre);
+		prodRepo.save(producto);
+
+		return new ResponseEntity<>(producto, HttpStatus.CREATED);
 	}
 	
+	@PutMapping(path = "/producto/modificar/precio")
+	public ResponseEntity<Producto> modificarPrecio(@RequestBody Producto producto, @RequestParam double newPrecio) {
+
+		log.info("metodo: modificarPrecio.");
+		producto.setPrecio(newPrecio);
+		prodRepo.save(producto);
+
+		return new ResponseEntity<>(producto, HttpStatus.CREATED);
+	}
+
+
+	// DELETE
 	
+	@DeleteMapping(path = "/producto/{nombre}")
+	public ResponseEntity<String> deleteById(@RequestParam int id, @PathVariable String nombre) {
+	
+		log.info("Borrando Producto id :" + id);
+		java.util.Optional<Producto> produ = prodRepo.findById(id);
+		
+		if (produ.isPresent()) {
+			prodRepo.deleteById(id);
+			return new ResponseEntity<>("Producto borrado.", HttpStatus.OK);
+		}
+		else {
+			log.info("Producto id: " + id + " no encontrado");
+			return new ResponseEntity<>("Producto no encontrado.", HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
+	
+	// GET
+	
+	@GetMapping(path = "/productos")
+	public ResponseEntity<List<Producto>> listadoProducto() {
+		log.info("comienzo invocacion listar productos...");
+		Iterable<Producto> lp = prodRepo.findAll();
+		List<Producto> result = Lists.newArrayList(lp);
+		return new ResponseEntity<>(result, HttpStatus.OK);
+	}
+
+	
+	@GetMapping(path = "/productos/{id}")
+	public ResponseEntity<Producto> getProductoById(@PathVariable("id") Integer id) {
+		log.info("metodo: getProducto" + id);
+		java.util.Optional<Producto> produ = prodRepo.findById(id);
+		Producto produRespuesta = produ.get();
+		if (java.util.Optional.empty().equals(produ)) {
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		} else {
+			return new ResponseEntity<>(produRespuesta, HttpStatus.OK);
+		}
+	}
+
+	
+	@GetMapping(path = "/productos/nombre")
+	public ResponseEntity<List<Producto>> getProductoByNombre(@RequestParam String nombre) {
+		log.info("metodo: getProdByNom" + nombre);
+
+		List<Producto> productosByNombre = prodRepo.findByNombreStartingWith(nombre);
+		return new ResponseEntity<>(productosByNombre, HttpStatus.OK);
+	}
 
 }
